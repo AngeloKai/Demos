@@ -3,6 +3,12 @@
 
 	const credAlgorithm = 'RSASSA-PKCS1-v1_5';
 
+	/******************************************
+	 *                                        *
+	 *	      Retrieve HTML Elements          *
+	 *                                        *
+	 ******************************************/
+
 	const buttonLogon = document.getElementById('idButton_Logon');
 	const buttonLogonWWinHello = document.getElementById('idButton_LogonWWinHello');
 	const textboxAcctName = document.getElementById('idDiv_AcctName');
@@ -14,6 +20,13 @@
 	const buttonRegisterWinHello = document.getElementById('idButton_RegisterWinHello');
 	const buttonSetupWinHello = document.getElementById('idButton_SetupWinHello');
 	const divSetupwWinHello = document.getElementById('idDiv_SetupWindowsHello');
+
+
+	/******************************************
+	 *                                        *
+	 *	           Helper Functions           *
+	 *                                        *
+	 ******************************************/
 
 	/*
 		The following function utf8ToBytes, utf8Slice, and decodeUtf8Char comes from TextEncoderLite:
@@ -103,20 +116,6 @@
 		return bytes
 	}
 
-
-	const gotoHome = function() {
-		location.href = 'home.html';
-	};
-
-	const gotoRegister = function() {
-		location.href = 'webauthnregister.html';
-	};
-
-	const sendToServer = function () {
-		/* This is where you would send data to the server.
-		   Currently nothing is actually sent. */
-	};
-
 	const log = function (message) {
 		console.log(message);
 	};
@@ -131,6 +130,27 @@
 		}
 		return text;
 	};
+
+	/******************************************
+	 *                                        *
+	 *	               UI Flow                *
+	 *                                        *
+	 ******************************************/
+
+
+	const gotoHome = function() {
+		location.href = 'home.html';
+	};
+
+	const gotoRegister = function() {
+		location.href = 'webauthnregister.html';
+	};
+
+	const sendToServer = function () {
+		/* This is where you would send data to the server.
+		 Currently nothing is actually sent. */
+	};
+
 
 	const addPasswordField = function() {
 		buttonLogon.style.display = 'block';
@@ -217,6 +237,88 @@
 		addRandomAcctInfo();
 	};
 
+	const featureDetect = function () {
+		const credentialId = localStorage.getItem('credentialId');
+
+		if (credentialId) {
+			const acctName = localStorage.getItem('acctName');
+
+			textboxAcctName.setAttribute('value', acctName);
+
+			/* If the user registered to use Windows Hello before, they can logon without using
+			 his/her password. */
+			hidePasswordField();
+		} else {
+			// Any error means that the user cannot sign in with WebAuthN and needs sign in with password.
+			addPasswordField();
+			addRandomAcctInfo();
+		}
+	};
+
+	/******************************************
+	 *                                        *
+	 *	 Server Side Implementation on JS     *
+	 *                                        *
+	 ******************************************/
+
+
+
+
+	// function verifyMSFidoSignature(clientData,authenticatorData,signature,publicKey) {
+    //
+	// 	var hash;
+    //
+	// 	// the server would have to validate that the clientData contained the same challenge
+	// 	// that was generated on the server for the getAssertion call
+	// 	return crypto.subtle.digest("SHA-256",parseBase64(clientData))
+    //
+	// 		.then(function(h) {
+	// 			hash = new Uint8Array(h);
+	// 			return crypto.subtle.importKey("jwk",JSON.parse(publicKey),credAlgorithm,false,["verify"]);
+	// 		})
+    //
+	// 		.then(function(key) {
+    //
+	// 			return crypto.subtle.verify({name:credAlgorithm, hash: { name: "SHA-256" }},
+	// 				key,parseBase64(signature),concatUint8Array(parseBase64(authenticatorData),hash));
+	// 		});
+	// }
+    //
+	// function verifyWD2Signature(clientData,authenticatorData,signature,publicKey) {
+    //
+	// 	var hash;
+    //
+	// 	// the server would have to validate that the clientData contained the same challenge
+	// 	// that was generated on the server for the getAssertion call
+	// 	return crypto.subtle.digest("SHA-256",parseBase64(clientData))
+    //
+	// 		.then(function(h) {
+	// 			hash = new Uint8Array(h);
+	// 			return crypto.subtle.importKey("jwk",JSON.parse(publicKey),credAlgorithm,false,["verify"]);
+	// 		})
+    //
+	// 		.then(function(key) {
+    //
+	// 			return crypto.subtle.verify({name:credAlgorithm, hash: { name: "SHA-256" }},
+	// 				key,parseBase64(signature),concatUint8Array(parseBase64(authenticatorData),hash));
+	// 		});
+	// }
+    //
+	// function verifySignature(clientData,authenticatorData,signature,publicKey) {
+	//
+	// 	if (navigator.authentication) {
+	// 		return verifyWD2Signature(clientData, authenticatorData, signature, publicKey)
+	// 	} else {
+	// 		return verifyMSFidoSignature(clientData, authenticatorData, signature, publicKey)
+	// 	}
+	//
+	// }
+
+	/******************************************
+	 *                                        *
+	 *	   Calling Web Authentication API     *
+	 *                                        *
+	 ******************************************/
 
 	// Register user with Web AuthN API
 	const createCredential = function () {
@@ -316,23 +418,13 @@
 			});
 	};
 
-	const featureDetect = function () {
-		const credentialId = localStorage.getItem('credentialId');
 
-		if (credentialId) {
-			const acctName = localStorage.getItem('acctName');
 
-			textboxAcctName.setAttribute('value', acctName);
-
-			/* If the user registered to use Windows Hello before, they can logon without using
-			his/her password. */
-			hidePasswordField();
-		} else {
-			// Any error means that the user cannot sign in with WebAuthN and needs sign in with password.
-			addPasswordField();
-			addRandomAcctInfo();
-		}
-	};
+	/******************************************
+	 *                                        *
+	 *	   Add Listener to HTML Elements      *
+	 *                                        *
+	 ******************************************/
 
 	document.addEventListener('DOMContentLoaded', function() {
 		/* If the password field exists, detect whether the register with Windows Hello
