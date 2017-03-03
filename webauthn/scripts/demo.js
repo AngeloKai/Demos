@@ -319,28 +319,28 @@
 		  This ensures that any assertions are freshly generated and not replays */
 		const challenge = new Uint8Array(utf8ToBytes('Our fathers brought forth on this continent, a new nation'));
 
-		const allowList = [{
-			/* There is only one type defined in the WebAuthN spec in Sept 29th. The link to
-			   this version of the spec is: http://www.w3.org/TR/2016/WD-webauthn-20160928/ */
+		// const allowList = [{
+		// 	/* There is only one type defined in the WebAuthN spec in Sept 29th. The link to
+		// 	   this version of the spec is: http://www.w3.org/TR/2016/WD-webauthn-20160928/ */
+        //
+		// 	type: 'ScopedCred',
+        //
+		// 		/* Because the current website only supports one user to login,
+		// 		   there should only be one credential available to use. */
+		// 	id: localStorage.getItem('credentialId')
+		// }];
+        //
+		// /* The options parameters are ignored in the Microsoft preliminary implementation.
+		//    It is created and passed in as an example of what the code may look like with the
+		//    current WebAuthN API. */
+		// const options = {
+		// 	timeoutSeconds: 60,
+		// 	rpId: void 0,
+		// 	allowList, // Specify the allowList parameter
+		// 	extensions: {}
+		// };
 
-			type: 'ScopedCred',
-
-				/* Because the current website only supports one user to login,
-				   there should only be one credential available to use. */
-			id: localStorage.getItem('credentialId')
-		}];
-
-		/* The options parameters are ignored in the Microsoft preliminary implementation.
-		   It is created and passed in as an example of what the code may look like with the
-		   current WebAuthN API. */
-		const options = {
-			timeoutSeconds: 60,
-			rpId: void 0,
-			allowList, // Specify the allowList parameter
-			extensions: {}
-		};
-
-		return navigator.authentication.getAssertion(challenge, options)
+		return navigator.authentication.getAssertion(challenge)
 			.then(function(assertion) {
 				// If the assertion calls succeeds, send assertion to the server.
 				sendToServer(assertion);
