@@ -148,6 +148,9 @@ navigator.authentication = navigator.authentication || (function () {
 			};
 			const params = [];
 
+			var cryptoAlgorithm = cryptoParam.algorithm;
+
+
 			if (accountInfo.name) {
 				acct.accountName = accountInfo.name;
 			}
@@ -155,10 +158,19 @@ navigator.authentication = navigator.authentication || (function () {
 				acct.accountImageUri = accountInfo.imageUri;
 			}
 
+			// RS256 is one of the several crypto algorithms in the category of RSASAA
+			if (cryptoParams.algorithm == 'RS256') {
+				cryptoAlgorithm = 'RSASSA-PKCS1-v1_5';
+			}
+
 			for (const cryptoParam of cryptoParams) {
 				// The type identifier used to be 'FIDO_2_0' instead of 'ScopedCred'
 				if (cryptoParam.type === 'ScopedCred') {
-					params.push({ type: 'FIDO_2_0', algorithm: cryptoParam.algorithm });
+
+					if (cryptoParams.algorithm == 'RS256') {
+						params.push({ type: 'FIDO_2_0', algorithm: cryptoAlgorithm });
+					}
+
 				} else {
 					params.push(cryptoParam);
 				}
