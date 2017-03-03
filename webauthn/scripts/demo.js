@@ -340,7 +340,7 @@
 			extensions: {}
 		};
 
-		return navigator.authentication.getAssertion(challenge)
+		return navigator.authentication.getAssertion(challenge, options)
 			.then(function(assertion) {
 				// If the assertion calls succeeds, send assertion to the server.
 				sendToServer(assertion);
