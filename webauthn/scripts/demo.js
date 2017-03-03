@@ -108,6 +108,38 @@
 		return bytes
 	}
 
+	function decodeUtf8Char (str) {
+
+		try {
+			return decodeURIComponent(str)
+		} catch (err) {
+			return String.fromCharCode(0xFFFD) // UTF 8 invalid char
+		}
+
+	}
+
+
+	function utf8Slice (buf, start, end) {
+
+		var res = ''
+		var tmp = ''
+		end = Math.min(buf.length, end || Infinity)
+		start = start || 0;
+
+		for (var i = start; i < end; i++) {
+
+			if (buf[i] <= 0x7F) {
+				res += decodeUtf8Char(tmp) + String.fromCharCode(buf[i])
+				tmp = ''
+			} else {
+				tmp += '%' + buf[i].toString(16)
+			}
+		}
+
+		return res + decodeUtf8Char(tmp)
+
+	}
+
 	/* eslint-enable */
 
 
@@ -287,26 +319,26 @@
 		  This ensures that any assertions are freshly generated and not replays */
 		const challenge = new Uint8Array(utf8ToBytes('Our fathers brought forth on this continent, a new nation'));
 
-		// const allowList = [{
-		// 	/* There is only one type defined in the WebAuthN spec in Sept 29th. The link to
-		// 	   this version of the spec is: http://www.w3.org/TR/2016/WD-webauthn-20160928/ */
-        //
-		// 	type: 'ScopedCred',
-        //
-		// 		/* Because the current website only supports one user to login,
-		// 		   there should only be one credential available to use. */
-		// 	id: localStorage.getItem('acctId')
-		// }];
-        //
-		// /* The options parameters are ignored in the Microsoft preliminary implementation.
-		//    It is created and passed in as an example of what the code may look like with the
-		//    current WebAuthN API. */
-		// const options = {
-		// 	timeoutSeconds: 60,
-		// 	rpId: void 0,
-		// 	allowList, // Specify the allowList parameter
-		// 	extensions: {}
-		// };
+		const allowList = [{
+			/* There is only one type defined in the WebAuthN spec in Sept 29th. The link to
+			   this version of the spec is: http://www.w3.org/TR/2016/WD-webauthn-20160928/ */
+
+			type: 'ScopedCred',
+
+				/* Because the current website only supports one user to login,
+				   there should only be one credential available to use. */
+			id: localStorage.getItem('credentialId')
+		}];
+
+		/* The options parameters are ignored in the Microsoft preliminary implementation.
+		   It is created and passed in as an example of what the code may look like with the
+		   current WebAuthN API. */
+		const options = {
+			timeoutSeconds: 60,
+			rpId: void 0,
+			allowList, // Specify the allowList parameter
+			extensions: {}
+		};
 
 		return navigator.authentication.getAssertion(challenge)
 			.then(function(assertion) {
