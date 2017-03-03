@@ -167,9 +167,7 @@ navigator.authentication = navigator.authentication || (function () {
 				// The type identifier used to be 'FIDO_2_0' instead of 'ScopedCred'
 				if (cryptoParam.type === 'ScopedCred') {
 
-					if (cryptoParams.algorithm == 'RS256') {
-						params.push({ type: 'FIDO_2_0', algorithm: cryptoAlgorithm });
-					}
+					params.push({ type: 'FIDO_2_0', algorithm: cryptoAlgorithm });
 
 				} else {
 					params.push(cryptoParam);
