@@ -143,14 +143,11 @@
 	};
 
 	const gotoRegister = function() {
+
+		startSessionOnServer();
+
 		location.href = 'webauthnregister.html';
 	};
-
-	const sendToServer = function () {
-		/* This is where you would send data to the server.
-		 Currently nothing is actually sent. */
-	};
-
 
 	const addPasswordField = function() {
 		buttonLogon.style.display = 'block';
@@ -262,7 +259,40 @@
 	 ******************************************/
 
 
+	const startSessionOnServer = function () {
+		localStorage.setItem('acctIdOnServer', localStorage.getItem('acctId'));
+		localStorage.setItem('acctNameOnServer', localStorage.getItem('acctName'));
 
+	}
+
+	const registerCredOnServer = function (credInfo) {
+		/* This is where you would send data to the server.
+		   For the sake of simplicity, nothing is sent.
+		   Typically, the following information will be linked with the Account ID on the database. Since in the
+		   demo site, there is only one user at any given time, the code doesn't differentiate between users.
+		 */
+
+		// Web developers can also store the credential id on their server.
+		localStorage.setItem('credentialIdOnServer', credInfo.credential.id);
+		localStorage.setItem('credentialTypeOnServer', credInfo.credential.type);
+		// The public key here is a JSON object.
+
+		localStorage.setItem('publicKeyOnServer', credInfo.publicKey);
+	};
+
+	const verifyAssertionOnServer = function (assertion) {
+
+		var credentialID =
+
+		if (navigator.authentication) {
+
+
+
+		} else {
+			verifyMSFidoSignature()
+		}
+
+	};
 
 	// function verifyMSFidoSignature(clientData,authenticatorData,signature,publicKey) {
     //
@@ -358,11 +388,10 @@
 
 			navigator.authentication.makeCredential(accountInfo, cryptoParameters, attestationChallenge, options)
 				.then(function (credInfo) {
-					// Web developers can also store the credential id on their server.
-					localStorage.setItem('credentialId', credInfo.credential.id);
-						// The public key here is a JSON object.
-					localStorage.setItem('publicKey', credInfo.publicKey);
 
+					localStorage.setItem('credentialId', credInfo.credential.id);
+
+					registerCredOnServer(credInfo);
 					gotoHome();
 				})
 				.catch(function(reason) {
@@ -406,7 +435,7 @@
 		return navigator.authentication.getAssertion(challenge, options)
 			.then(function(assertion) {
 				// If the assertion calls succeeds, send assertion to the server.
-				sendToServer(assertion);
+				verifyAssertionOnServer(assertion);
 
 				// If authenticated, sign in to regular inbox.
 				gotoHome();
