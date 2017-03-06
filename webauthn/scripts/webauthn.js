@@ -157,23 +157,21 @@ navigator.authentication = navigator.authentication || (function () {
 			}
 
 			for (const cryptoParam of cryptoParams) {
-
-				var cryptoAlgorithm = cryptoParam.algorithm;
+				let cryptoAlgorithm = cryptoParam.algorithm;
 
 				// RS256 is one of the RSASSA crypto algorithms.
-				if (cryptoParam.algorithm == 'RS256') {
+				if (cryptoParam.algorithm === 'RS256') {
 					cryptoAlgorithm = 'RSASSA-PKCS1-v1_5';
 				}
 
-				var cryptoType = cryptoParam.type;
+				let cryptoType = cryptoParam.type;
 
 				// The type identifier used to be 'FIDO_2_0' instead of 'ScopedCred'
-				if (cryptoParam.type == 'ScopedCred') {
-					cryptoType = 'FIDO_2_0'
+				if (cryptoParam.type === 'ScopedCred') {
+					cryptoType = 'FIDO_2_0';
 				}
 
 				params.push({ type: cryptoType, algorithm: cryptoAlgorithm });
-
 			}
 
 			return msCredentials.makeCredential(acct, params)
