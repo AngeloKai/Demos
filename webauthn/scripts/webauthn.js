@@ -35,7 +35,7 @@ getAssertion:
 */
 
 /* global msCredentials */
-navigator.authentication = navigator.authentication || (function () {
+navigator.credentials = navigator.credentials || (function () {
 	'use strict';
 
 	const webauthnDB = (function () {
