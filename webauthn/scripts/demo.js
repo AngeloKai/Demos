@@ -177,13 +177,13 @@
 
 	};
 
-	/* eslint-enable */
-
 	/*******************************
 	 *                             *
 	 *            UI Flow          *
 	 *                             *
 	 *******************************/
+
+	/* eslint-enable */
 
 
 	const gotoHome = function() {
