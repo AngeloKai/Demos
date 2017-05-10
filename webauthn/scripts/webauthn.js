@@ -136,55 +136,55 @@ navigator.credentials = navigator.credentials || (function () {
 	}());
 
 
-	const makeCredential = function (accountInfo, cryptoParams) {
+	const create = function (createOptions) {
 		try {
 			/* Need to know the display name of the relying party, the display name
 			   of the user, and the user id to create a credential. For every user
 			   id, there is one credential stored by the authenticator. */
+
 			const acct = {
-				rpDisplayName: accountInfo.rpDisplayName,
-				userDisplayName: accountInfo.displayName,
-				userId: accountInfo.id
+				rpDisplayName: createOptions.rp.name,
+				userDisplayName: createOptions.user.DisplayName,
+				userId: createOptions.user.id
 			};
-			const params = [];
 
+			const encryptParams = [];
 
-			if (accountInfo.name) {
-				acct.accountName = accountInfo.name;
+			if (createOptions.user.name) {
+				acct.accountName = createOptions.user.name;
 			}
-			if (accountInfo.imageUri) {
-				acct.accountImageUri = accountInfo.imageUri;
+			if (createOptions.user.name) {
+				acct.accountImageUri = createOptions.user.icon;
 			}
 
-			for (const cryptoParam of cryptoParams) {
-				let cryptoAlgorithm = cryptoParam.algorithm;
+			for (const param of parameters) {
+				let cryptoAlgorithm = param.algorithm;
 
 				// RS256 is one of the RSASSA crypto algorithms.
-				if (cryptoParam.algorithm === 'RS256') {
+				if (param.algorithm === 'RS256') {
 					cryptoAlgorithm = 'RSASSA-PKCS1-v1_5';
 				}
 
-				let cryptoType = cryptoParam.type;
+				let cryptoType = param.type;
 
 				// The type identifier used to be 'FIDO_2_0' instead of 'ScopedCred'
-				if (cryptoParam.type === 'ScopedCred') {
+				if (param.type === 'public-key') {
 					cryptoType = 'FIDO_2_0';
 				}
 
-				params.push({ type: cryptoType, algorithm: cryptoAlgorithm });
+				encryptParams.push({ type: cryptoType, algorithm: cryptoAlgorithm });
 			}
 
-			return msCredentials.makeCredential(acct, params)
+			return msCredentials.makeCredential(acct, encryptParams)
 				.then((cred) => {
 					if (cred.type === 'FIDO_2_0') {
 					// The returned credential should be immutable, aka freezed.
 						const result = Object.freeze({
-							credential: {type: 'ScopedCred', id: cred.id},
-							publicKey: JSON.parse(cred.publicKey),
-							attestation: cred.attestation
+							credential: {type: 'public-key', id: cred.rawId},
+							attestation: cred.response.attestationObject
 						});
 
-						return webauthnDB.store(result.credential.id, accountInfo).then(() => {
+						return webauthnDB.store(result.rawId, accountInfo).then(() => {
 							return result;
 						});
 					}
@@ -225,7 +225,7 @@ navigator.credentials = navigator.credentials || (function () {
 	};
 
 
-	const getAssertion = function (challenge, options) {
+	const get = function (options) {
 		let allowlist;
 		try {
 			 allowlist = options ? options.allowList : void 0;
@@ -235,22 +235,20 @@ navigator.credentials = navigator.credentials || (function () {
 
 		return getCredList(allowlist).then((credList) => {
 			const filter = { accept: credList };
-			let sigParams;
 
-			if (options && options.extensions && options.extensions.webauthn_txAuthSimple) {
-				sigParams = { userPrompt: options.extensions.webauthn_txAuthSimple };
-			}
-
-			return msCredentials.getAssertion(challenge, filter, sigParams);
+			return msCredentials.getAssertion(challenge, filter);
 		})
 		.then((sig) => {
 			if (sig.type === 'FIDO_2_0') {
 				return Promise.resolve(Object.freeze({
 
-					credential: {type: 'ScopedCred', id: sig.id},
-					clientData: sig.signature.clientData,
-					authenticatorData: sig.signature.authnrData,
-					signature: sig.signature.signature
+					rawId: sig.id,
+					response: {
+						// TODO: may be buggy. 
+						clientDataJSON: sig.signature.clientData,
+						authenticatorData: sig.signature.authnrData,
+						signature: sig.signature.signature
+					}
 
 				}));
 			}
@@ -265,7 +263,7 @@ navigator.credentials = navigator.credentials || (function () {
 
 
 	return {
-		makeCredential,
-		getAssertion
+		create,
+		get
 	};
 }());
