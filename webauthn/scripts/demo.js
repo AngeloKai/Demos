@@ -367,7 +367,7 @@
 				extensions: void 0,
 			};
 
-			navigator.credentials.create({publicKey})
+			navigator.credentials.create(publicKey)
 				.then(function (credInfo) {
 					// Web developers can also store the credential id on their server.
 					arrayBufferToBase64Str(credInfo.credential.id).then(function (credIdStr) {
