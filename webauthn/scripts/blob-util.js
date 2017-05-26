@@ -1,3 +1,71 @@
+/**
+ * Convert an <code>ArrayBuffer</code> to a <code>Blob</code>. Returns a Promise.
+ *
+ * @param {ArrayBuffer} buffer
+ * @param {string|undefined} type - the content type (optional)
+ * @returns {Promise} Promise that resolves with the <code>Blob</code>
+ */
+function arrayBufferToBlob(buffer, type) {
+    return Promise.resolve().then(function() {
+        return createBlob([buffer], type);
+    });
+}
+
+/**
+ * Convert a <code>Blob</code> to a binary string. Returns a Promise.
+ * @param {Blob} blob
+ * @returns {Promise} Promise that resolves with the binary string
+ */
+function blobToBase64String(blob) {
+    return blobToBinaryString(blob).then(function(binary) {
+        return btoa(binary);
+    });
+}
+
+/**
+ * Convert a <code>Blob</code> to a binary string. Returns a Promise.
+ *
+ * @param {Blob} blob
+ * @returns {Promise} Promise that resolves with the binary string
+ */
+function blobToBinaryString(blob) {
+    return new Promise(function(resolve, reject) {
+        var reader = new FileReader();
+        var hasBinaryString = typeof reader.readAsBinaryString === 'function';
+        reader.onloadend = function(e) {
+            var result = e.target.result || '';
+            if (hasBinaryString) {
+                return resolve(result);
+            }
+            resolve(arrayBufferToBinaryString(result));
+        };
+        reader.onerror = reject;
+        if (hasBinaryString) {
+            reader.readAsBinaryString(blob);
+        } else {
+            reader.readAsArrayBuffer(blob);
+        }
+    });
+}
+
+/**
+ * Shim for
+ * [new Blob()]{@link https://developer.mozilla.org/en-US/docs/Web/API/Blob.Blob}
+ * to support
+ * [older browsers that use the deprecated <code>BlobBuilder</code> API]{@link http://caniuse.com/blob}.
+ *
+ * @param {Array} parts - content of the <code>Blob</code>
+ * @param {Object} options - usually just <code>{type: myContentType}</code>
+ * @returns {Blob}
+ */
+function createBlob(parts, options) {
+    options = options || {};
+    if (typeof options === 'string') {
+        options = { type: options }; // do you a solid here
+    }
+    return new Blob(parts, options);
+}
+
 (function(f) {
     if (typeof exports === "object" && typeof module !== "undefined") { module.exports = f() } else if (typeof define === "function" && define.amd) { define([], f) } else {
         var g;
@@ -542,24 +610,6 @@
 
             /**
              * Shim for
-             * [new Blob()]{@link https://developer.mozilla.org/en-US/docs/Web/API/Blob.Blob}
-             * to support
-             * [older browsers that use the deprecated <code>BlobBuilder</code> API]{@link http://caniuse.com/blob}.
-             *
-             * @param {Array} parts - content of the <code>Blob</code>
-             * @param {Object} options - usually just <code>{type: myContentType}</code>
-             * @returns {Blob}
-             */
-            function createBlob(parts, options) {
-                options = options || {};
-                if (typeof options === 'string') {
-                    options = { type: options }; // do you a solid here
-                }
-                return new Blob(parts, options);
-            }
-
-            /**
-             * Shim for
              * [URL.createObjectURL()]{@link https://developer.mozilla.org/en-US/docs/Web/API/URL.createObjectURL}
              * to support browsers that only have the prefixed
              * <code>webkitURL</code> (e.g. Android <4.4).
@@ -579,32 +629,6 @@
              */
             function revokeObjectURL(url) {
                 return (window.URL || window.webkitURL).revokeObjectURL(url);
-            }
-
-            /**
-             * Convert a <code>Blob</code> to a binary string. Returns a Promise.
-             *
-             * @param {Blob} blob
-             * @returns {Promise} Promise that resolves with the binary string
-             */
-            function blobToBinaryString(blob) {
-                return new Promise(function(resolve, reject) {
-                    var reader = new FileReader();
-                    var hasBinaryString = typeof reader.readAsBinaryString === 'function';
-                    reader.onloadend = function(e) {
-                        var result = e.target.result || '';
-                        if (hasBinaryString) {
-                            return resolve(result);
-                        }
-                        resolve(arrayBufferToBinaryString(result));
-                    };
-                    reader.onerror = reject;
-                    if (hasBinaryString) {
-                        reader.readAsBinaryString(blob);
-                    } else {
-                        reader.readAsArrayBuffer(blob);
-                    }
-                });
             }
 
             /**
@@ -629,17 +653,6 @@
             function binaryStringToBlob(binary, type) {
                 return Promise.resolve().then(function() {
                     return base64StringToBlob(btoa(binary), type);
-                });
-            }
-
-            /**
-             * Convert a <code>Blob</code> to a binary string. Returns a Promise.
-             * @param {Blob} blob
-             * @returns {Promise} Promise that resolves with the binary string
-             */
-            function blobToBase64String(blob) {
-                return blobToBinaryString(blob).then(function(binary) {
-                    return btoa(binary);
                 });
             }
 
@@ -726,19 +739,6 @@
                     return imgToCanvas(img);
                 }).then(function(canvas) {
                     return canvasToBlob(canvas, type, quality);
-                });
-            }
-
-            /**
-             * Convert an <code>ArrayBuffer</code> to a <code>Blob</code>. Returns a Promise.
-             *
-             * @param {ArrayBuffer} buffer
-             * @param {string|undefined} type - the content type (optional)
-             * @returns {Promise} Promise that resolves with the <code>Blob</code>
-             */
-            function arrayBufferToBlob(buffer, type) {
-                return Promise.resolve().then(function() {
-                    return createBlob([buffer], type);
                 });
             }
 

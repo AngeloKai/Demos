@@ -368,10 +368,10 @@
             };
 
             //navigator.credentials.create(publicKey)
-			return navigator.credentials.create({"publicKey": createOptions})
+            return navigator.credentials.create({ "publicKey": createOptions })
                 .then(function(credInfo) {
                     // Web developers can also store the credential id on their server.
-                    arrayBufferToBase64Str(credInfo.credential.id).then(function(credIdStr) {
+                    arrayBufferToBase64Str(credInfo.id).then(function(credIdStr) {
                             localStorage.setItem('credentialId', credIdStr);
                         })
                         .catch(function(err) {
