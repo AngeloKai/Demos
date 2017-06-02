@@ -192,7 +192,7 @@ navigator.credentials = navigator.credentials || (function () {
 					return cred;
 				})
 			.catch((err) => {
-				console.log(`makeCredential failed: ${err}`);
+				console.log(`create failed: ${err}`);
 				throw new Error('NotAllowedError');
 			});
 		} catch (err) {
@@ -225,40 +225,51 @@ navigator.credentials = navigator.credentials || (function () {
 	};
 
 
-	const get = function (options) {
-		let allowlist;
-		try {
-			 allowlist = options ? options.allowList : void 0;
-		} catch (e) {
+	const get = function (credentialRequests) {
+
+		const publicKeyCredRequest = credentialRequests.publicKey
+
+		if (publicKeyCredRequest) {
+			let allowlist;
+			try {
+				allowlist = publicKeyCredRequest ? publicKeyCredRequest.allowList : void 0;
+			} catch (e) {
+				throw new Error('NotAllowedError');
+			}
+
+			return getCredList(allowlist).then((credList) => {
+				const filter = { accept: credList };
+
+				return msCredentials.getAssertion(challenge, filter);
+			})
+			.then((sig) => {
+				if (sig.type === 'FIDO_2_0') {
+					return Promise.resolve(Object.freeze({
+
+						rawId: sig.id,
+						response: {
+							// TODO: may be buggy. 
+							clientDataJSON: sig.signature.clientData,
+							authenticatorData: sig.signature.authnrData,
+							signature: sig.signature.signature
+						}
+
+					}));
+				}
+
+				return Promise.resolve(sig);
+			})
+			.catch((err) => {
+				console.log(`getAssertion failed: ${err}`);
+				throw new Error('NotAllowedError');
+			});
+
+		} else {
+			console.log(`The current browser only supports Public Key credential`);
 			throw new Error('NotAllowedError');
 		}
 
-		return getCredList(allowlist).then((credList) => {
-			const filter = { accept: credList };
-
-			return msCredentials.getAssertion(challenge, filter);
-		})
-		.then((sig) => {
-			if (sig.type === 'FIDO_2_0') {
-				return Promise.resolve(Object.freeze({
-
-					rawId: sig.id,
-					response: {
-						// TODO: may be buggy. 
-						clientDataJSON: sig.signature.clientData,
-						authenticatorData: sig.signature.authnrData,
-						signature: sig.signature.signature
-					}
-
-				}));
-			}
-
-			return Promise.resolve(sig);
-		})
-		.catch((err) => {
-			console.log(`getAssertion failed: ${err}`);
-			throw new Error('NotAllowedError');
-		});
+		
 	};
 
 
