@@ -22,6 +22,17 @@ function blobToBase64String(blob) {
     });
 }
 
+function binaryStringToArrayBuffer(binary) {
+    var length = binary.length;
+    var buf = new ArrayBuffer(length);
+    var arr = new Uint8Array(buf);
+    var i = -1;
+    while (++i < length) {
+        arr[i] = binary.charCodeAt(i);
+    }
+    return buf;
+}
+
 /**
  * Convert a <code>Blob</code> to a binary string. Returns a Promise.
  *
@@ -45,6 +56,13 @@ function blobToBinaryString(blob) {
         } else {
             reader.readAsArrayBuffer(blob);
         }
+    });
+}
+
+function base64StringToBlob(base64, type) {
+    return Promise.resolve().then(function() {
+        var parts = [binaryStringToArrayBuffer(atob(base64))];
+        return type ? createBlob(parts, { type: type }) : createBlob(parts);
     });
 }
 
