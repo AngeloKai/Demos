@@ -35,237 +35,235 @@ getAssertion:
 */
 
 /* global msCredentials */
-navigator.authentication = navigator.authentication || (function () {
-	'use strict';
+navigator.credentials = navigator.credentials || (function() {
+    'use strict';
 
-	const webauthnDB = (function () {
-		const WEBAUTHN_DB_VERSION = 1;
-		const WEBAUTHN_DB_NAME = '_webauthn';
-		const WEBAUTHN_ID_TABLE = 'identities';
+    const webauthnDB = (function() {
+        const WEBAUTHN_DB_VERSION = 1;
+        const WEBAUTHN_DB_NAME = '_webauthn';
+        const WEBAUTHN_ID_TABLE = 'identities';
 
-		let db = null;
-		let initPromise = null;
+        let db = null;
+        let initPromise = null;
 
-		const initDB = function () {
-	 /* to remove database, use window.indexedDB.deleteDatabase('_webauthn'); */
-			return new Promise((resolve, reject) => {
-				const req = indexedDB.open(WEBAUTHN_DB_NAME, WEBAUTHN_DB_VERSION);
-				req.onupgradeneeded = function() {
-					// new database - set up store
-					db = req.result;
-					db.createObjectStore(WEBAUTHN_ID_TABLE, { keyPath: 'id'});
-				};
+        const initDB = function() {
+            /* to remove database, use window.indexedDB.deleteDatabase('_webauthn'); */
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open(WEBAUTHN_DB_NAME, WEBAUTHN_DB_VERSION);
+                req.onupgradeneeded = function() {
+                    // new database - set up store
+                    db = req.result;
+                    db.createObjectStore(WEBAUTHN_ID_TABLE, { keyPath: 'id' });
+                };
 
-				req.onsuccess = function() {
-					db = req.result;
-					resolve();
-				};
+                req.onsuccess = function() {
+                    db = req.result;
+                    resolve();
+                };
 
-				req.onerror = function(e) {
-					reject(e);
-				};
-			});
-		};
+                req.onerror = function(e) {
+                    reject(e);
+                };
+            });
+        };
 
-		const doStore = function (id, data) {
-			if (!db) {
-				throw new Error('UnknownError');
-			}
-			return new Promise((resolve, reject) => {
-				const tx = db.transaction(WEBAUTHN_ID_TABLE, 'readwrite');
-				const store = tx.objectStore(WEBAUTHN_ID_TABLE);
-				store.put({id, data});
+        const doStore = function(id, data) {
+            if (!db) {
+                throw new Error('UnknownError');
+            }
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(WEBAUTHN_ID_TABLE, 'readwrite');
+                const store = tx.objectStore(WEBAUTHN_ID_TABLE);
+                store.put({ id, data });
 
-				tx.oncomplete = function() {
-					resolve();
-				};
+                tx.oncomplete = function() {
+                    resolve();
+                };
 
-				tx.onerror = function(e) {
-					reject(e);
-				};
-			});
-		};
+                tx.onerror = function(e) {
+                    reject(e);
+                };
+            });
+        };
 
-		const store = function (id, data) {
-			if (!initPromise) {
-				initPromise = initDB();
-			}
-			return initPromise.then(() => {
-				return doStore(id, data);
-			});
-		};
+        const store = function(id, data) {
+            if (!initPromise) {
+                initPromise = initDB();
+            }
+            return initPromise.then(() => {
+                return doStore(id, data);
+            });
+        };
 
-		const doGetAll = function () {
-			if (!db) {
-				throw new Error('UnknownError');
-			}
+        const doGetAll = function() {
+            if (!db) {
+                throw new Error('UnknownError');
+            }
 
-			return new Promise((resolve, reject) => {
-				const tx = db.transaction(WEBAUTHN_ID_TABLE, 'readonly');
-				const req = tx.objectStore(WEBAUTHN_ID_TABLE).openCursor();
-				const res = [];
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(WEBAUTHN_ID_TABLE, 'readonly');
+                const req = tx.objectStore(WEBAUTHN_ID_TABLE).openCursor();
+                const res = [];
 
-				req.onsuccess = function() {
-					const cur = req.result;
-					if (cur) {
-						res.push({id: cur.value.id, data: cur.value.data});
-						cur.continue();
-					} else {
-						resolve(res);
-					}
-				};
+                req.onsuccess = function() {
+                    const cur = req.result;
+                    if (cur) {
+                        res.push({ id: cur.value.id, data: cur.value.data });
+                        cur.continue();
+                    } else {
+                        resolve(res);
+                    }
+                };
 
-				req.onerror = function(e) {
-					reject(e);
-				};
-			});
-		};
+                req.onerror = function(e) {
+                    reject(e);
+                };
+            });
+        };
 
-		const getAll = function () {
-			if (!initPromise) {
-				initPromise = initDB();
-			}
-			return initPromise.then(doGetAll);
-		};
-
-
-		return {
-			store,
-			getAll
-		};
-	}());
+        const getAll = function() {
+            if (!initPromise) {
+                initPromise = initDB();
+            }
+            return initPromise.then(doGetAll);
+        };
 
 
-	const makeCredential = function (accountInfo, cryptoParams) {
-		try {
-			/* Need to know the display name of the relying party, the display name
-			   of the user, and the user id to create a credential. For every user
-			   id, there is one credential stored by the authenticator. */
-			const acct = {
-				rpDisplayName: accountInfo.rpDisplayName,
-				userDisplayName: accountInfo.displayName,
-				userId: accountInfo.id
-			};
-			const params = [];
+        return {
+            store,
+            getAll
+        };
+    }());
 
 
-			if (accountInfo.name) {
-				acct.accountName = accountInfo.name;
-			}
-			if (accountInfo.imageUri) {
-				acct.accountImageUri = accountInfo.imageUri;
-			}
+    const create = function(createOptions) {
+        try {
+            /* Need to know the display name of the relying party, the display name
+               of the user, and the user id to create a credential. For every user
+               id, there is one credential stored by the authenticator. */
 
-			for (const cryptoParam of cryptoParams) {
-				let cryptoAlgorithm = cryptoParam.algorithm;
+            const acct = {
+                rpDisplayName: createOptions.rp.name,
+                userDisplayName: createOptions.user.DisplayName,
+                userId: createOptions.user.id
+            };
 
-				// RS256 is one of the RSASSA crypto algorithms.
-				if (cryptoParam.algorithm === 'RS256') {
-					cryptoAlgorithm = 'RSASSA-PKCS1-v1_5';
-				}
+            const encryptParams = [];
 
-				let cryptoType = cryptoParam.type;
+            if (createOptions.user.name) {
+                acct.accountName = createOptions.user.name;
+            }
+            if (createOptions.user.name) {
+                acct.accountImageUri = createOptions.user.icon;
+            }
 
-				// The type identifier used to be 'FIDO_2_0' instead of 'ScopedCred'
-				if (cryptoParam.type === 'ScopedCred') {
-					cryptoType = 'FIDO_2_0';
-				}
+            for (const param of parameters) {
+                let cryptoAlgorithm = param.algorithm;
 
-				params.push({ type: cryptoType, algorithm: cryptoAlgorithm });
-			}
+                // RS256 is one of the RSASSA crypto algorithms.
+                if (param.algorithm === 'RS256') {
+                    cryptoAlgorithm = 'RSASSA-PKCS1-v1_5';
+                }
 
-			return msCredentials.makeCredential(acct, params)
-				.then((cred) => {
-					if (cred.type === 'FIDO_2_0') {
-					// The returned credential should be immutable, aka freezed.
-						const result = Object.freeze({
-							credential: {type: 'ScopedCred', id: cred.id},
-							publicKey: JSON.parse(cred.publicKey),
-							attestation: cred.attestation
-						});
+                let cryptoType = param.type;
 
-						return webauthnDB.store(result.credential.id, accountInfo).then(() => {
-							return result;
-						});
-					}
+                // The type identifier used to be 'FIDO_2_0' instead of 'ScopedCred'
+                if (param.type === 'public-key') {
+                    cryptoType = 'FIDO_2_0';
+                }
 
-					return cred;
-				})
-			.catch((err) => {
-				console.log(`makeCredential failed: ${err}`);
-				throw new Error('NotAllowedError');
-			});
-		} catch (err) {
-			throw new Error('NotAllowedError');
-		}
-	};
+                encryptParams.push({ type: cryptoType, algorithm: cryptoAlgorithm });
+            }
 
+            return msCredentials.makeCredential(acct, encryptParams)
+                .then((cred) => {
+                    if (cred.type === 'FIDO_2_0') {
+                        // The returned credential should be immutable, aka freezed.
+                        const result = Object.freeze({
+                            credential: { type: 'public-key', id: cred.rawId },
+                            attestation: cred.response.attestationObject
+                        });
 
-	const getCredList = function (allowlist) {
-		/* According to the spec, if allowList is supplied, the credentialList
-		   comes from the allowList; otherwise the credentialList is from searching all
-		   previously stored valid credentials. */
-		if (allowlist) {
-			return Promise.resolve(allowlist.map((descriptor) => {
-				if (descriptor.type === 'ScopedCred') {
-					return { type: 'FIDO_2_0', id: descriptor.id};
-				}
-				return descriptor;
-			}));
-		}
-		webauthnDB.getAll()
-			.then((list) => {
-				return Promise.resolve(list.map((descriptor) => {
-					return { type: 'FIDO_2_0', id: descriptor.id};
-				}));
-			})
-		.catch((err) => {
-			console.log(`Credential lists cannot be retrieved: ${err}`);
-		});
-	};
+                        return webauthnDB.store(result.rawId, accountInfo).then(() => {
+                            return result;
+                        });
+                    }
+
+                    return cred;
+                })
+                .catch((err) => {
+                    console.log(`makeCredential failed: ${err}`);
+                    throw new Error('NotAllowedError');
+                });
+        } catch (err) {
+            throw new Error('NotAllowedError');
+        }
+    };
 
 
-	const getAssertion = function (challenge, options) {
-		let allowlist;
-		try {
-			 allowlist = options ? options.allowList : void 0;
-		} catch (e) {
-			throw new Error('NotAllowedError');
-		}
-
-		return getCredList(allowlist).then((credList) => {
-			const filter = { accept: credList };
-			let sigParams;
-
-			if (options && options.extensions && options.extensions.webauthn_txAuthSimple) {
-				sigParams = { userPrompt: options.extensions.webauthn_txAuthSimple };
-			}
-
-			return msCredentials.getAssertion(challenge, filter, sigParams);
-		})
-		.then((sig) => {
-			if (sig.type === 'FIDO_2_0') {
-				return Promise.resolve(Object.freeze({
-
-					credential: {type: 'ScopedCred', id: sig.id},
-					clientData: sig.signature.clientData,
-					authenticatorData: sig.signature.authnrData,
-					signature: sig.signature.signature
-
-				}));
-			}
-
-			return Promise.resolve(sig);
-		})
-		.catch((err) => {
-			console.log(`getAssertion failed: ${err}`);
-			throw new Error('NotAllowedError');
-		});
-	};
+    const getCredList = function(allowlist) {
+        /* According to the spec, if allowList is supplied, the credentialList
+           comes from the allowList; otherwise the credentialList is from searching all
+           previously stored valid credentials. */
+        if (allowlist) {
+            return Promise.resolve(allowlist.map((descriptor) => {
+                if (descriptor.type === 'ScopedCred') {
+                    return { type: 'FIDO_2_0', id: descriptor.id };
+                }
+                return descriptor;
+            }));
+        }
+        webauthnDB.getAll()
+            .then((list) => {
+                return Promise.resolve(list.map((descriptor) => {
+                    return { type: 'FIDO_2_0', id: descriptor.id };
+                }));
+            })
+            .catch((err) => {
+                console.log(`Credential lists cannot be retrieved: ${err}`);
+            });
+    };
 
 
-	return {
-		makeCredential,
-		getAssertion
-	};
+    const get = function(options) {
+        let allowlist;
+        try {
+            allowlist = options ? options.allowList : void 0;
+        } catch (e) {
+            throw new Error('NotAllowedError');
+        }
+
+        return getCredList(allowlist).then((credList) => {
+                const filter = { accept: credList };
+
+                return msCredentials.getAssertion(challenge, filter);
+            })
+            .then((sig) => {
+                if (sig.type === 'FIDO_2_0') {
+                    return Promise.resolve(Object.freeze({
+
+                        rawId: sig.id,
+                        response: {
+                            // TODO: may be buggy.
+                            clientDataJSON: sig.signature.clientData,
+                            authenticatorData: sig.signature.authnrData,
+                            signature: sig.signature.signature
+                        }
+
+                    }));
+                }
+
+                return Promise.resolve(sig);
+            })
+            .catch((err) => {
+                console.log(`getAssertion failed: ${err}`);
+                throw new Error('NotAllowedError');
+            });
+    };
+
+
+    return {
+        create,
+        get
+    };
 }());
