@@ -1283,7 +1283,7 @@
                     localStorage.setItem('publicKey', credInfo.publicKey);
                     localStorage.setItem('setupSuccess', 'setupSuccess');
 
-                    seckeyCompleteUI();
+                    gotoHome();
 				})
 				.catch(function(reason) {
 						// Windows Hello isn't setup, show dialog explaining how to set it up
