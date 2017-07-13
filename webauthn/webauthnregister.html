@@ -33,8 +33,26 @@
                             <p>Do you want to enable Windows Hello for your next sign in?</p>
                         </div>
                         <div class="section">
-                            <button id="idButton_MaybeLater">Maybe later</button>
-                            <button id="idButton_RegisterWinHello">Start using Windows Hello!</button>
+                            <button id="idButton_Hello_MaybeLater" style="margin-top:1rem">Maybe later</button>
+                            <button id="idButton_RegisterWinHello" style="margin-top:1rem">Start using Windows Hello!</button>
+                            <button id="idButton_helloComplete" style="margin-top:1rem; display:none">Set up complete. Continue!</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sub-content">
+                    <div class="signInHeader">
+                        <h1 id="idH1_HelloHeader">Security Keys</h1>
+                    </div>
+                    <div>
+                        <div id="idDiv_FSI_HeaderInfo">
+                            <p>You can also use a secuirty key to sign in. Security keys are specially designed, highly secure keys that you can use to sign in to websites such as Facebook, Google, etc.</p>
+                            <p>Do you want to start using Security Keys for your next sign in?</p>
+                        </div>
+                        <div class="section">
+                            <button id="idButton_SecKey_MaybeLater" style="margin-top:1rem">Maybe later</button>
+                            <button id="idButton_RegisterSecurityKey" style="margin-top:1rem">Start using Security Key</button>
+                            <button id="idButton_seckeyComplete" style="margin-top:1rem; display:none">Set up complete. Continue!</button>
                         </div>
                     </div>
                 </div>
