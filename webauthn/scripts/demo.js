@@ -1096,7 +1096,7 @@
 	};
 
 	const signinOrRegister = function () {
-		if (navigator.authentication) {
+		if (navigator.credentials) {
 			// If Windows Hello is supported, offer to register Windows Hello
 			gotoRegister();
 		} else {
