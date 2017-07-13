@@ -1383,10 +1383,6 @@
 			buttonReset.addEventListener('click', resetPage);
 		}
 
-		if (buttonMaybeLater) {
-			buttonMaybeLater.addEventListener('click', gotoHome);
-		}
-
 		if (buttonRegisterWinHello) {
 			buttonRegisterWinHello.addEventListener('click', createCredentialHello);
         }
