@@ -1,5 +1,6 @@
-﻿.overflow-wrap {
+.overflow-wrap {
 	display: block;
+	margin-bottom: 2.4rem;
 	width: 100%;
 	overflow-x: auto;
 }
@@ -28,6 +29,10 @@
 	box-sizing: content-box;
 }
 
+button {
+	margin-top: 1.2rem;
+}
+
 /* These classes added in JS */
 .test-result--good {
 	color: #107C10;
@@ -43,7 +48,7 @@
 
 /* Move to general CSS library? */
 @media (min-width: 40em) {
-	
+
 	.longform-text {
 		-webkit-columns: 2;
 		-moz-columns: 2;
@@ -52,5 +57,5 @@
 		-moz-column-gap: 3.2em;
 		column-gap: 3.2em;
 	}
-	
+
 }
