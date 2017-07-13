@@ -1389,7 +1389,11 @@
 
 		if (buttonRegisterWinHello) {
 			buttonRegisterWinHello.addEventListener('click', createCredentialHello);
-		}
+        }
+        
+        if (buttonRegisterSecKey) {
+            buttonRegisterSecKey.addEventListener('click', createCredentialSecurityKeys);
+        }
 
 		if (buttonSetupWinHello) {
 			buttonSetupWinHello.addEventListener('click', showSetupWindowsHelloDialog(false));
