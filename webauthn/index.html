@@ -42,12 +42,12 @@
                                 </div>
                             </div>
                             <div class="section">
-                                <button class="default" id="idButton_Logon" style="margin-top:1rem">Sign In</button>
-                                <button class="default" id="idButton_LogonWoRegister" style="margin-top:1rem">Sign In</button>
-                                <button class="default" id="idButton_LogonWWinHello" style="margin-top:1rem" hidden>Sign In with Security Keys</button>
+                                <button class="action_button" id="idButton_Logon" style="margin-top:1rem">Sign In</button>
+                                <button class="action_button" id="idButton_LogonWoRegister" style="margin-top:1rem">Sign In</button>
+                                <button class="action_button" id="idButton_LogonWWinHello" style="margin-top:1rem" hidden>Sign In with Security Keys</button>
                             </div>
                             <div class="row small" id="register">
-                                <button class="default" id="idButton_LogonWPwd" style="margin-top:1rem">Sign in with a password</button>
+                                <button class="action_button" id="idButton_LogonWPwd" style="margin-top:1rem">Sign in with a password</button>
                             </div>
                         </div>
                     </div>
@@ -59,6 +59,7 @@
         <button class="small_button" id="idButton_Reset">Reset session</button>
     </footer>
     <script src="./scripts/blob-util.js"></script>
+    <script src="path/to/cbor.js" type="text/javascript"></script>
     <!-- Polyfill for the WebAuthN API. The polyfill maps WebAuthN calls to msCredentials !-->
     <script src="./scripts/webauthn.js"></script>
     <script src="./scripts/demo.js"></script>

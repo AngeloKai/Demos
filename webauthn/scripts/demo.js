@@ -1155,8 +1155,31 @@
 			addPasswordField();
 			addRandomAcctInfo();
 		}
-	};
+    };
+    
+    /*******************************
+	 *                             *
+	 *   Server-side Validation    *
+	 *                             *
+	 *******************************/
 
+    const decodeClientData = function (buf) {
+        // ArrayBuffer is converted to a UTF-8 string and then a JSON object. with
+        const clientDataJson = JSON.parse(ab2str(buf));
+        const challenge = clientDataJson.challenge;
+        const origin = clientDataJson.origin;
+        const hashAlg = clientDataJson.hashAlg;
+        const tbId = clientDataJson.tokenBindingId; 
+    }
+
+    const validateAttestation = function (buf) {
+        const decoded = CBOR.decoded(buf);
+    }
+
+    // Convert ArrayBuffer to UTF-8 string. 
+    const ab2str = function (buf) {
+        return String.fromCharCode.apply(null, new Uint8Array(buf));
+    }
 	/*******************************
 	 *                             *
 	 *    Calling WebAuthn API     *
